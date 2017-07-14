@@ -1,0 +1,10 @@
+######################################################
+# Created by: drago				     #
+# Channels: #scripting - #cynatic @ irc.quakenet.org #
+# Credits to: #scripting crew, gr33ny.  	     #
+######################################################
+
+Version 1.2 of the cynatic MTS theme. 
+You must install the anonymous font (can be used with terminal to).
+
+Remember: For those who wear figleafs shall not dance with hungry goats. 
