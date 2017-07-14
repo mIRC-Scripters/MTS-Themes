@@ -1,0 +1,41 @@
+luminosity 1.4 by zioxide
+-------------------------
+luminosity is a theme created for MTS 1.1 by zioxide.  I created it after seeing some nice themes on screenshots on various mirc websites, and I even got the colors for the beach theme from a screenshot of JOKRKNEX.
+luminosity consists of the default scheme, 'midnight', and seven schemes: 'beach', 'lunar', 'ice', 'desert', 'autumn', 'stone', and 'black ice'.  A new version with more schemes will be available soon.  To use, just extract to your themes directory, run your mts engine, and select the theme.  Enjoy!
+
+Nicklist coloring has been added in the newest version, and to get the full effect of it, you should edit your kte.mrc file.
+All you need to do is find line 651 in the original kte.mrc, which reads this:
+  var %h = Kte_Theme, %modes = Owner .;Op @;HOp % $+ ;Voice +, %i = 1, %t = $numtok(%modes, 59), %cl, %cllist
+Just change it to include the rest of the modes, like:
+  var %h = Kte_Theme, %modes = Owner ~;Owner .;Protect &;Admin &;Op @;HOp % $+ ;Voice +, %i = 1, %t = $numtok(%modes, 59), %cl, %cllist
+(If you have modified kte.mrc and this line is not on line 651, just search for "alias -l kte_apply_colors_modes", it is the second line of that alias.
+
+Special thanks to-
+[AFX], schnoodles, bl44t, Rixxon, Sheik, Ami
+Everyone else in #genscripts & VidGameChat
+
+Copyright 2005 zioxide
+irc.vidgamechat.net #zioxide
+http://zioxide.zapto.org
+
+
+Changes:
+-------------------------
+v1.4
+-Renamed 2Graphik theme to Desert
+-Added Autumn, Stone, and Black Ice schemes
+-Fixed a bug with DCC chat
+-Added nicklist coloring
+v1.3
+-Added 2Graphik theme, http://www.2graphik.com
+-Fixed a whois bug that showed a person as always being identified
+-Added support for mirc's highlighting feature
+v1.2
+-Added Ice scheme, by request of [AFX] :)
+-Removed Darkness & Hell schemes, I felt they were sub-par to the rest of the schemes.
+v1.1
+-Changed action display
+v1.0.1
+-Fixed a bug with /describe #chan blah blah where channel name was shown instead of your nickname.
+-Changed the way the DNS displays
+-Fixed a bug with notify displays

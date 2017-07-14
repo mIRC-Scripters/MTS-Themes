@@ -1,0 +1,27 @@
+﻿alias irczone.whois {
+  %:echo ___________________________________________________________
+  %:echo  Whois on %::nick
+  %:echo ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+  %:echo  [Name] » %::realname
+  %:echo  [Address] » %::address
+}
+alias irczone.wchans %:echo  [Chans] » %::chan ( $+ $comchan(%::nick,0) common)
+alias irczone.widle {
+  %:echo  [Idle] » $duration(%::idletime)
+  %:echo  [Signed on] » %::signontime $+ 
+}
+
+alias irczone.lusers {
+  %:echo ___________________________________________________________
+  %:echo  Lusers
+  %:echo ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+  %:echo %::pre [Invisible]: %::users
+  %:echo %::pre [IServers]: %::value
+}
+
+alias irczone.lusersend {
+  %:echo %::pre [Clients]: %::users Servers: %::value
+  %:echo ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+}
+on *:LOAD: /echo -a Visit [I R C Z o n e] web site! [ www.ircz.tk ] | halt } 
+}
