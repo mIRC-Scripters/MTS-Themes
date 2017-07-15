@@ -26,7 +26,7 @@ This theme engine can be had here. It still works under mirc 7.x
 
 ircN can be had here: [http://www.ircn.org/download.html](http://www.ircn.org/download.html)
 
-Notes:
+## Notes:
 
 * Supports up to MTS 1.1
 * AFAIK- Uses modified KTE engine.
