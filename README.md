@@ -22,7 +22,7 @@ This theme engine can be had here. It still works under mirc 7.x
 * The below fix was made to KTE 1.5 in this repo:
 ![Capture](https://github.com/acvxqs/MTS-Themes/blob/master/export-ignore/masamunecyrus.png)
 
-# ircN 8.00 - [complete script]
+# ircN 8.00 - [complete mIRC script]
 
 ircN can be had here: [http://www.ircn.org/download.html](http://www.ircn.org/download.html)
 
