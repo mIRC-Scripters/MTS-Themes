@@ -1,0 +1,769 @@
+; Kte dynamic script file
+; Do not edit or unload this file while using Kte!
+alias theme.text {
+  if (!$var(%:echo)) { return $false }
+  kte_set std
+  if ($isalias(kte:: $+ $1)) { kte:: $+ $1 | return $true }
+  elseif (* iswm $hget(Kte_Theme, $1)) {
+    var %ln
+    set -n %ln $hget(Kte_Theme, $1)
+    if ($gettok(%ln, 1, 32) == !Script) { set -n %ln $deltok(%ln, 1, 32) }
+    else { set -n %ln % $+ :echo $dll($scriptdir $+ kte.dll, MTSPrecompile, %ln) $!+  % $+ :comments }
+    .timerkte_theme 1 0 %ln | .timerkte_theme -e | return $true
+  }
+  return $false
+}
+alias kte_void
+
+alias -l _entered {
+  var %def = $readini($mircini, events, default), %set
+  if (!%def) { %def = 0,0,0,0,0,0,0,0 }
+  %set = $readini($mircini, events, $1)
+  if (!%set) { %set = 0,0,0,0,0,0,0,0 }
+  while ($findtok(%set, 0, 1, 44)) { %set = $puttok(%set, $calc($gettok(%def, $ifmatch, 44) + 1), $ifmatch, 44) }
+  hadd Kte_Events $1 %set
+}
+alias -l _left {
+  set -u0 %kte_chan $1
+  var %i = $scon(0)
+  while (%i) { if ($scon(%i) != $cid) && ($scon(%i).kte_haschan) { return } | dec %i }
+  hdel Kte_Events $1
+}
+alias -l kte_haschan return $chan(%kte_chan)
+
+alias -l _isactive if ($cid == $activecid) { return 1 } | return 0
+alias -l _active if ($cid == $activecid) { return a } | return s
+alias -l _ischat {
+  var %n = $mid($1, 2)
+  if (=* !iswm $1) { return 1 }
+  if (=* iswm $1) && (($chat(%n)) || ($fserv(%n))) { return 1 }
+  return 0
+}
+
+; events
+on ^&*:JOIN:#:{
+  if ($chan !ischan) { return }
+  if ($nick == $me) { _entered $chan }
+  var %tgt = $gettok($hget(Kte_Events, $chan), 1, 44)
+  if (%tgt = 3) && ($nick != $me) { haltdef | return }
+  kte_set std nick address target chanstd
+  if (%tgt = 2) { set -u1 %:echo echo $color(join) -sti2 }
+  else { set -u1 %:echo echo $color(join) -ti2 $chan }
+  if ($nick == $me) { kte::JoinSelf }
+  else { kte::Join }
+  kte_unset
+}
+on ^&*:PART:#:{
+  if ($chan !ischan) { return }
+  var %tgt = $gettok($hget(Kte_Events, $chan), 2, 44)
+  if ($nick != $me) || (%tgt = 2) {
+    if (%tgt = 3) { goto skip }
+    if (%tgt = 2) { set -u1 %:echo echo $color(part) -sti2 }
+    else { set -u1 %:echo echo $color(part) -ti2 $chan }
+    set -nu1 %::text $strip($1-, o)
+    kte_set std nick address target chanstd parentext
+    kte::Part
+    kte_unset
+  }
+  :skip
+  if ($nick == $me) { _left $chan }
+}
+
+on ^&*:QUIT:{
+  var %i = $comchan($nick, 0), %tgt, %st = 0
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address parentext
+  while (%i) {
+    %::chan = $comchan($nick, %i)
+    %tgt = $gettok($hget(Kte_Events, %::chan), 3, 44)
+    if (%tgt = 4) { dec %i | continue }
+    if (%tgt = 3) || (%tgt = 2) { %st = 1 }
+    if (!%tgt) || (%tgt = 3) || (%tgt = 1) { %:echo = echo $color(quit) -ti2 %::chan | kte::Quit ! }
+    dec %i
+  }
+  unset %::chan
+  if ($query($nick)) { %:echo = echo $color(quit) -ti2 $nick | kte::Quit ! }
+  if (%st) { %:echo = echo $color(quit) -sti2 | kte::Quit ! }
+  haltdef
+  kte_unset
+}
+
+on ^&*:NICK:{
+  var %i = $comchan($newnick, 0), %tgt
+  kte_set std nick address
+  set -u1 %::newnick $newnick
+  if ($nick == $me) { %:echo = echo $color(nick) -sti2 | kte::NickSelf ! }
+  while (%i) {
+    set -u1 %::chan $comchan($newnick, %i)
+    %tgt = $gettok($hget(Kte_Events, %::chan), 7, 44)
+    if (%tgt != 2) || ($nick == $me) { %:echo = echo $color(nick) -ti2 %::chan | kte::Nick ! }
+    dec %i
+  }
+  if ($query($newnick)) { unset %::chan | %:echo = echo $color(nick) -ti2 $newnick | kte::Nick ! }
+  haltdef
+  kte_unset + chan newnick
+}
+
+on ^&*:USERMODE:{
+  kte_set std nick address
+  set -nu1 %::modes $1-
+  set -u1 %:echo echo $color(mode) -sti2
+  kte::ModeUser
+  unset %::modes
+  kte_unset
+}
+on ^&*:RAWMODE:#:{
+  if ($chan !ischan) { return }
+  var %tgt = $gettok($hget(Kte_Events, $chan), 4, 44)
+  if (%tgt = 3) { haltdef | return }
+  kte_set std nick address target chanstd
+  if (%tgt = 2) { set -u1 %:echo echo $color(mode) -sti2 }
+  else { set -u1 %:echo echo $color(mode) -ti2 $chan }
+  set -nu1 %::modes $1-
+  kte::Mode
+  unset %::modes
+  kte_unset
+}
+
+on ^&*:TOPIC:#:{
+  if ($chan !ischan) { return }
+  var %tgt = $gettok($hget(Kte_Events, $chan), 5, 44)
+  if (%tgt = 3) { haltdef | return }
+  if (%tgt = 2) { set -u1 %:echo echo $color(topic) -sti2 }
+  else { set -u1 %:echo echo $color(topic) -ti2 $chan }
+  set -nu1 %::text $1-
+  kte_set std nick address target chanstd parentext
+  kte::Topic
+  kte_unset
+}
+on ^&*:KICK:#:{
+  if ($chan !ischan) { return }
+  var %tgt = $gettok($hget(Kte_Events, $chan), 8, 44)
+  if (%tgt = 3) && ($knick != $me) { haltdef | return }
+  if (%tgt = 2) { set -u1 %:echo echo $color(kick) -sti2 }
+  else { set -u1 %:echo echo $color(kick) -ti2 $chan }
+  set -u1 %::knick $knick
+  set -u1 %::kaddress $gettok($address($knick, 5), 2, 33)
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address target chanstd parentext
+  if ($knick == $me) {
+    kte::KickSelf !
+    if (%tgt == 2) { set -u1 %:echo echo $color(kick) -ti2 $chan }
+    else { set -u1 %:echo echo $color(kick) -seti2 }
+    kte::KickSelf !
+    _left $chan
+  }
+  else { kte::Kick ! }
+  haltdef
+  kte_unset + knick kaddress
+}
+
+on ^&*:INVITE:#:{
+  var %e = echo $color(invite) -ti2
+  kte_set std nick address chan target
+  if ($_isactive) && (@* !iswm $active) && ($hget(Kte_Events, Active.Invites)) { set -u1 %:echo %e $+ a }
+  else { set -u1 %:echo %e $+ s }
+  kte::Invite
+  kte_unset
+}
+
+on ^&*:ERROR:*:{
+  set -u1 %:echo echo $color(other) -sti2 | set -nu1 %::text $2-
+  kte_set std nick parentext
+  kte::ServerError
+  kte_unset
+}
+
+on ^&*:NOTIFY:{
+  set -u1 %:echo echo $color(notify) -ti2 $+ $iif(($_isactive) && (@* !iswm $active), a, s)
+  set -nu1 %::text $notify($nick).note
+  kte_set std nick address parentext
+  kte::Notify
+  kte_unset
+}
+on ^&*:UNOTIFY:{
+  set -u1 %:echo echo $color(notify) -ti2 $+ $iif(($_isactive) && (@* !iswm $active), a, s)
+  set -nu1 %::text $notify($nick).note
+  kte_set std nick address parentext
+  kte::UNotify
+  kte_unset
+}
+
+on ^&*:WALLOPS:*:{
+  set -u1 %:echo echo $color(wallops) -ti2 $+ $iif(($_isactive) && (@* !iswm $active), a, s)
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address target parentext
+  kte::Wallop
+  kte_unset
+}
+
+on &*:DNS:{
+  set -u1 %:echo echo $color(info) -ti2 $+ $iif(($_isactive) && (@* !iswm $active), a, s)
+  kte_set std
+  if ($dns(0)) {
+    var %i = 1, %t = $dns(0)
+    while (%i <= %t) {
+      set -nu1 %::nick $dns(%i).nick
+      set -nu1 %::address $dns(%i)
+      set -nu1 %::iaddress $dns(%i).ip
+      set -nu1 %::naddress $dns(%i).addr
+      set -nu1 %::raddress $remtok($dns(%i).ip $dns(%i).addr, $dns(%i), 1, 32)
+      kte::DNSResolve
+      inc %i
+    }
+  }
+  else {
+    set -nu1 %::nick $nick
+    set -nu1 %::address $address
+    kte::DNSError
+  }
+  kte_unset + nick address iaddress raddress naddress
+}
+
+on ^&*:SNOTICE:*:{
+  set -u1 %:echo echo $color(notice) -sti2
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick target parentext
+  kte::NoticeServer
+  kte_unset
+}
+
+on &*:INPUT:*:{
+  if ($0) && ((/* !iswm $1) || ($ctrlenter)) && (($active ischan) || ($query($active)) || (=* iswm $active)) && ($window($active, 0) = 1) {
+    say $1- | halt
+  }
+}
+
+alias say {
+  if ($isid) { return }
+  if ($status == disconnected) || (!$0) || (($active !ischan) && (!$query($active))) && (=* !iswm $active) {
+    .timer.kte 1 0 !say $1- | .timer.kte -e | halt
+  }
+  .!msg $active $1-
+  set -u1 %:echo echo $color(own) -ati2
+  set -nu1 %::text $1- | set -u1 %::target $active | set -u1 %::nick $me
+  kte_set std parentext
+  if ($active ischan) {
+    set -u1 %::chan $active
+    if ($nick($active, $me).pnick != $me) { set -u1 %::cmode $left($ifmatch, 1) }
+    set -u1 %::cnick $nick($active, $me).color
+    kte::TextChanSelf !
+  }
+  else {
+    set -u1 %::cnick $cnick($me).color
+    kte::TextQuerySelf !
+  }
+  kte_unset + target nick address chan cnick cmode
+}
+alias query {
+  if ($isid) { return }
+  if (!$0) { .timer.kte 1 0 !query | .timer.kte -e | halt }
+  !query $1
+  if ($0 > 1) {
+    if (!$server) { .timer.kte 1 0 !query $1- | .timer.kte -e | halt }
+    msg $1-
+  }
+}
+alias msg {
+  if ($isid) { return }
+  if ($0 < 2) || ((=* !iswm $1) && ($status == disconnected)) || (!$_ischat($1)) {
+    .timer.kte 1 0 !msg $1- | .timer.kte -e | halt
+  }
+  .!msg $1-
+  if (!$show) { return }
+  set -nu1 %::text $2- | set -u1 %::target $1 | set -u1 %::nick $me
+  kte_set std parentext
+  ; %::nick = $me. This is a matter of logic.
+  ; Use <target> in your script, not <nick>, to refer to the recipient of the message.
+  if ($1 ischan) || ($query($1)) || (=* iswm $1) {
+    set -u1 %:echo echo $color(own) -ti2 $1
+    if ($1 ischan) {
+      if ($nick($1, $me).pnick != $me) { set -u1 %::cmode $left($ifmatch, 1) }
+      set -u1 %::cnick $nick($1, $me).color
+      kte::TextChanSelf !
+    }
+    else { kte::TextQuerySelf ! }
+  }
+  else {
+    set -u1 %:echo echo $color(own) -ti2 $+ $_active
+    kte::TextMsgSelf
+  }
+  kte_unset + target nick chanstd
+}
+alias amsg {
+  if ($isid) { return }
+  if ($status == disconnected) || (!$0) || (!$chan(0)) { .timer.kte 1 0 !amsg $1- | .timer.kte -e | halt }
+  !.amsg $1-
+  if (!$show) { return }
+  set -nu1 %::text $1- | set -u1 %::nick $me
+  kte_set std parentext
+  var %i = $chan(0)
+  while (%i) {
+    set -u1 %::chan $chan(%i)
+    set -u1 %::target %::chan
+    set -u1 %:echo echo $color(own) -ti2 %::chan
+    if ($nick($chan(%i), $me).pnick != $me) { set -u1 %::cmode $left($ifmatch, 1) }
+    set -u1 %::cnick $nick(%::chan, $me).color
+    kte::TextChanSelf !
+    dec %i
+  }
+  kte_unset + nick cnick cmode chan target
+}
+
+
+alias me {
+  if ($isid) { return }
+  if (!$server) || (!$0) || (($active !ischan) && (!$query($active))) && (=* !iswm $active) {
+    .timer.kte 1 0 !me $1- | .timer.kte -e | halt
+  }
+  .!describe $active $1-
+  if (!$show) { return }
+  set -u1 %:echo echo $color(action) -ati2
+  set -nu1 %::text $1- | set -u1 %::target $active | set -u1 %::nick $me
+  kte_set std parentext
+  if ($active ischan) {
+    set -u1 %::chan $active
+    if ($nick($active, $me).pnick != $me) { set -u1 %::cmode $left($ifmatch, 1) }
+    set -u1 %::cnick $nick($active, $me).color
+  }
+  kte::ActionChanSelf !
+  kte_unset + target nick chan cnick cmode
+}
+alias action {
+  if ($isid) { return }
+  if (!$server) || (!$0) || (($active !ischan) && (!$query($active))) && (=* !iswm $active) {
+    .timer.kte 1 0 !action $1- | .timer.kte -e | halt
+  }
+  me $1-
+}
+alias describe {
+  if ($isid) { return }
+  if (!$server) || ($0 < 2) || (!$_ischat($1)) {
+    .timer.kte 1 0 !describe $1- | .timer.kte -e | halt
+  }
+  .!describe $1-
+  if (!$show) { return }
+  set -nu1 %::text $2- | set -u1 %::target $1 | set -u1 %::nick $1
+  kte_set std parentext
+  if ($1 ischan) || ($query($1)) || (=* iswm $1) {
+    set -u1 %:echo echo $color(action) -ti2 $1
+    if ($1 ischan) {
+      set -u1 %::chan $1
+      if ($nick($1, $me).pnick != $me) { set -u1 %::cmode $left($ifmatch, 1) }
+      set -u1 %::cnick $nick($1, $me).color
+      kte::ActionChanSelf !
+    }
+    else { kte::ActionQuerySelf ! }
+  }
+  else { set -u1 %:echo echo $color(action) -ti2 $+ $_active | kte::ActionMsgSelf ! }
+  kte_unset + target chan cmode cnick nick
+}
+alias ame {
+  if ($isid) { return }
+  if (!$server) || (!$0) || (!$chan(0)) { .timer.kte 1 0 !ame $1- | .timer.kte -e | halt }
+  !.ame $1-
+  if (!$show) { return }
+  set -nu1 %::text $1- | set -u1 %::nick $me
+  kte_set std parentext
+  var %i = $chan(0)
+  while (%i) {
+    set -u1 %::chan $chan(%i)
+    set -u1 %::target %::chan
+    set -u1 %:echo echo $color(action) -ti2 %::chan
+    if ($nick(%::chan, $me).pnick != $me) { set -u1 %::cmode $left($ifmatch, 1) }
+    set -u1 %::cnick $nick(%::chan, $me).color
+    kte::ActionChanSelf !
+    dec %i
+  }
+  kte_unset + target chan cnick cmode nick
+}
+
+alias notice {
+  if ($isid) { return }
+  if (!$server) || ($0 < 2) { .timer.kte 1 0 !notice $1- | .timer.kte -e | halt }
+  .!notice $1-
+  if (!$show) { return }
+  set -nu1 %::text $2- | set -u1 %::target $1 | set -u1 %::nick $1
+  kte_set std parentext
+  set -u1 %:echo echo $color(notice) -ti2 $+ $_active
+  if ($1 ischan) { set -u1 %::chan $1 | kte::NoticeSelfChan ! }
+  else { kte::NoticeSelf ! }
+  kte_unset + target nick chan
+}
+
+on &^*:TEXT:*:#:{
+  if ($chan !ischan) { return }
+  set -u1 %:echo echo $color(normal) -mlbfti2 $chan
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address chanstd target parentext
+  kte::TextChan
+  kte_unset
+}
+on &^*:ACTION:*:#:{
+  if ($chan !ischan) { return }
+  set -u1 %:echo echo $color(action) -mlbfti2 $chan
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address chanstd target parentext
+  kte::ActionChan
+  kte_unset
+}
+on &^*:NOTICE:*:#:{
+  if ($chan !ischan) { return }
+  set -u1 %:echo echo $color(notice) -mti2 $chan
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address chanstd target parentext
+  kte::NoticeChan
+  kte_unset
+}
+
+on &^*:CHAT:*:{
+  if ($window(=$nick, 0) > 1) { return }
+  kte_set std nick address target
+  if (ACTION * iswm $1-) {
+    set -u1 %:echo echo $color(action) -mti2lbf =$nick
+    set -nu1 %::text $strip($mid($1-, 8, -1), o)
+    kte_set parentext
+    kte::ActionQuery
+  }
+  else {
+    set -u1 %:echo echo $color(normal) -mti2lbf =$nick
+    set -nu1 %::text $strip($1-, o)
+    kte_set parentext
+    kte::TextQuery
+  }
+  kte_unset std nick address target parentext
+}
+
+on &^*:TEXT:*:?:{
+  var %e = echo $color(normal) -mti2
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address target parentext
+  if ($query($nick)) {
+    set -u1 %:echo %e $nick
+    kte::TextQuery
+  }
+  else {
+    if ($window(Message Window)) { set -u1 %:echo %e $+ d }
+    elseif ($_isactive) && (@* !iswm $active) && ($hget(Kte_Events, Active.Queries)) { set -u1 %:echo %e $+ a }
+    else { set -u1 %:echo %e $+ s }
+    kte::TextMsg
+  }
+  kte_unset
+}
+on &^*:ACTION:*:?:{
+  var %e = echo $color(action) -mti2
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address target parentext
+  if ($query($nick)) { set -u1 %:echo %e $nick | kte::ActionQuery }
+  else {
+    if ($window(Message Window)) { set -u1 %:echo %e $+ d }
+    elseif ($_isactive) && (@* !iswm $active) && ($hget(Kte_Events, Active.Queries)) { set -u1 %:echo %e $+ a }
+    else { set -u1 %:echo %e $+ s }
+    kte::ActionMsg
+  }
+  kte_unset
+}
+on &^*:NOTICE:*:?:{
+  var %e = echo $color(notice) -mti2
+  if ($_isactive) && (@* !iswm $active) && ($hget(Kte_Events, Active.Notices)) { set -u1 %:echo %e $+ a }
+  else { set -u1 %:echo %e $+ s }
+  set -nu1 %::text $strip($1-, o)
+  kte_set std nick address target parentext
+  kte::Notice
+  kte_unset
+}
+
+ctcp ^&*:*:?:kte_onctcp $1-
+ctcp ^&*:*:#:kte_onctcp $1-
+alias -l kte_onctcp {
+  if ($1 == VERSION) || (($target == $me) && ($1 == DCC)) { return }
+  var %ch = 0, %txt, %rpl
+  if ($target != $me) { %ch = 1 }
+  if ($target ischan) {
+    var %tgt = $gettok($hget(Kte_Events, $chan), 6, 44)
+    if (%tgt = 2) { set -u1 %:echo echo $color(ctcp) -sti2 }
+    else { set -u1 %:echo echo $color(ctcp) -ti2 $target }
+  }
+  else {
+    set -u1 %:echo echo $color(ctcp) -ti2 $+ $iif((@* !iswm $active) && ($_isactive) && ($hget(Kte_Events, Active.CTCPs)), a, s)
+  }
+  set -u1 %::ctcp $1
+  set -n %txt $2-
+  if ($1 == PING) { %txt = | set -n %rpl $1- }
+  elseif ($1- == TIME) { set -n %rpl $1 $fulldate }
+  elseif ($1- == FINGER) { set -n %rpl $1 $($fullname, 2) (-) Idle $idle second $+ $iif(($idle != 1), s) }
+  set -nu1 %::text $strip(%txt, o)
+  kte_set std nick address chanstd target parentext
+  if (%ch) { kte::CTCPChan ! }
+  else { kte::CTCP ! }
+  if (%rpl) { !.ctcpreply $nick %rpl }
+  kte_unset
+  haltdef
+}
+
+alias ctcp {
+  if ($isid) { return }
+  if ($0 < 2) || (!$server) || ($2 == DCC) { .timer.kte 1 0 !ctcp $1- | .timer.kte -e | return }
+  .!ctcp $1-
+  if (!$show) { return }
+  set -u1 %::target $1
+  set -u1 %::ctcp $upper($2)
+  set -nu1 %::text $3-
+  kte_set std parentext
+  set -u1 %:echo echo $color(ctcp) -ti2 $+ $_active
+  if ($1 ischan) { set -u1 %::chan $1 | kte::CTCPChanSelf ! }
+  else { set -u1 %::nick $1 | kte::CTCPSelf ! }
+  kte_unset + nick chan ctcp target
+}
+
+on &*:CTCPREPLY:*:{
+  var %rpl | set -n %rpl $2-
+  if ($1 == PING) && ($2- isnum 1- $+ $ctime) { %rpl = $duration($calc($ctime - $2)) }
+  set -u1 %:echo echo $color(ctcp) -ti2 $+ $_active
+  set -u1 %::ctcp $upper($1)
+  set -nu1 %::text $strip(%rpl, o)
+  kte_set std nick address target parentext
+  kte::CTCPReply
+  kte_unset + ctcp
+}
+
+alias ctcpreply {
+  if ($isid) { return }
+  if ($0 < 2) || (!$server) { .timer.kte 1 0 !ctcpreply $1- | .timer.kte -e | return }
+  .!ctcpreply $1-
+  if (!$show) { return }
+  set -u1 %:echo echo $color(ctcp) -ti2 $+ $_active
+  set -u1 %::target $1
+  set -u1 %::ctcp $upper($2)
+  set -nu1 %::text $3-
+  set -u1 %::nick $1
+  kte_set std parentext
+  kte::CTCPReplySelf !
+  kte_unset + ctcp target nick
+}
+
+alias dns {
+  if ($isid) { return }
+  if (!$0) || (($1 == -h) && ($0 = 1)) || ((. !isin $1) && ($1 != -h) && (!$server)) {
+    .timer.kte 1 0 !dns $1- | .timer.kte -e | return
+  }
+  .!dns $1-
+  if (!$show) { return }
+  var %h = $1, %f
+  if ($istok(-h -c, $1, 32)) { %f = $1 | %h = $2 }
+  if (%f != -h) && (. !isin %h) && ($address(%h, 5)) { %h = $gettok($ifmatch, 2, 64) }
+  set -u1 %:echo echo $color(info) -ti2 $+ $iif((@* iswm $active) && ($_isactive), s, a)
+  set -u1 %::address %h
+  kte_set std
+  kte::DNS !
+  kte_unset + address
+}
+
+; ----------------------------------------------------------------------
+; Numeric (raw) events  ------------------------------------------------
+; ----------------------------------------------------------------------
+
+raw 002:*:set -u1 %::value $ [ $+ [ $0 ] ] | _doraw $1-
+raw 003:*:if ($2-5 == this server was created) { set -u1 %::value $6- } | _doraw $1-
+raw 221:*:set -u1 %::nick $me | set -u1 %::modes $2 | _doraw $1-
+raw 250:*:set -u1 %::value $5 | _doraw $1-
+raw 251:*:set -u1 %::users $4 | set -u1 %::text $7 | set -u1 %::value $10 | _doraw $1-
+raw 255:*:set -u1 %::users $4 | set -u1 %::value $7 | _doraw $1-
+raw 265:*:set -u1 %::users $5 | set -u1 %::value $7 | _doraw $1-
+raw 266:*:set -u1 %::users $5 | set -u1 %::value $7 | _doraw $1-
+raw 301:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Whois)) { hadd Kte_Whois Away $3- | haltdef }
+  else { set -u1 %::nick $2 | set -nu1 %::away $3- | set -nu1 %::text $3- | _doraw $1- }
+}
+raw 302:*:{
+  if ($halted) || (!$isalias(kte::Raw.302)) { return }
+  var %i = 2, %t = $0, %p, %addr, %pos
+  while (%i <= %t) {
+    %p = $ [ $+ [ %i ] ]
+    %addr = $gettok(%p, 2, 61)
+    %pos = $pos(%addr, $left($remove(%addr, +, -), 1), 1)
+    set -u1 %::nick $gettok(%p, 1, 61)
+    set -u1 %::address $mid(%addr, %pos)
+    set -u1 %::value $left(%addr, $calc(%pos - 1))
+    if ($right(%::nick, 1) == *) { %::nick = $left(%::nick, -1) | %::value = %::value $+ * }
+    ._doraw $1-
+    inc %i
+  }
+}
+
+; /list
+raw 321:*:if (!$halted) && ($isalias(kte::Raw.321)) { _doraw $1- }
+raw 322:*:if (!$halted) && ($isalias(kte::Raw.322)) { _doraw $1- }
+raw 323:*:if (!$halted) && ($isalias(kte::Raw.323)) { _doraw $1- }
+; /links
+raw 364:*:if (!$halted) && ($isalias(kte::Raw.364)) { _doraw $1- }
+raw 365:*:if (!$halted) && ($isalias(kte::Raw.365)) { _doraw $1- }
+
+raw 324:*:set -u1 %::chan $2 | set -u1 %::value $3- | set -u1 %::modes $3- | set -u1 %::text $3- | _doraw $1-
+raw 329:*:set -u1 %::chan $2 | set -u1 %::value $asctime($3) | set -u1 %::text $3- | _doraw $1-
+raw 333:*:set -u1 %::chan $2 | set -u1 %::nick $3 | set -u1 %::value $asctime($4) | set -u1 %::text %::value | _doraw $1-
+raw 341:*:set -u1 %::nick $2 | set -u1 %::chan $3 | _doraw $1-
+raw 352:*:{
+  if ($2 != *) { set -u1 %::chan $2 }
+  set -u1 %::address $+($3, @, $4)
+  set -u1 %::wserver $5
+  set -u1 %::nick $6
+  set -u1 %::away $iif((h isin $7), H, G)
+  set -u1 %::isoper is $iif((* !isin $7), not)
+  set -u1 %::cmode $remove($7, *, H, G)
+  set -u1 %::value $8
+  set -u1 %::realname $9-
+  _doraw $1-
+}
+raw 353:*:set -u1 %::chan $2 | set -u1 %::text $3- | _doraw $1-
+raw 372:*:set -nu1 %::text $3- | _doraw $1-
+raw 391:*:set -u1 %::text $3- | _doraw $1-
+
+; whois
+raw 311:*:{
+  var %h = Kte_Whois
+  if ($halted) { return }
+  if ($hget(%h)) { showwhois Whois }
+  if (* iswm $hget(Kte_Theme, Whois)) {
+    if (!$hget(%h)) { hmake %h 4 }
+    hadd %h Nick $2 | hadd %h Address $+($3, @, $4)
+    hadd %h RealName $6-
+    haltdef
+  }
+  if ($isalias(kte::Raw.311)) {
+    set -u1 %::nick $2
+    set -u1 %::address $+($3, @, $4)
+    set -nu1 %::realname $6-
+    ._doraw $1-
+  }
+}
+raw 314:*:{
+  var %h = Kte_Whois
+  if ($halted) { return }
+  if ($hget(%h)) { showwhois Whowas }
+  elseif (* iswm $hget(Kte_Theme, Whowas)) {
+    if (!$hget(%h)) { hmake %h 4 } | hadd %h Nick $2 | hadd %h Address $+($3, @, $4)
+    hadd %h RealName $6- | haltdef
+  }
+  if ($isalias(kte::Raw.314)) {
+    set -u1 %::nick $2 | set -u1 %::address $+($3, @, $4) | set -nu1 %::realname $6- | ._doraw $1-
+  }
+}
+raw 319:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Whois)) { hadd Kte_Whois Chan $hget(Kte_Whois, Chan) $3- | haltdef }
+  if ($isalias(kte::Raw.319)) { set -u1 %::nick $2 | set -nu1 %::chan $3- | ._doraw $1- }
+}
+raw 312:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Whois)) { hadd Kte_Whois WServer $3 | hadd Kte_Whois ServerInfo $4- | haltdef }
+  if ($isalias(kte::Raw.312)) { set -u1 %::nick $2 | set -u1 %::wserver $3 | set -nu1 %::serverinfo $4- | ._doraw $1- }
+}
+raw 307:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Whois)) { hadd Kte_Whois IsRegd is | haltdef }
+  if ($isalias(kte::Raw.307)) { set -u1 %::nick $2 | set -u1 %::isregd is | ._doraw $1- }
+}
+raw 313:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Whois)) { hadd Kte_Whois IsOper is | hadd Kte_Whois OperLine $3- | haltdef }
+  if ($isalias(kte::Raw.313)) { set -u1 %::nick $2 | set -u1 %::isoper is | set -nu1 %::operline $3- | ._doraw $1- }
+}
+raw 317:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Whois)) { hadd Kte_Whois IdleTime $3 | hadd Kte_Whois SignonTime $4 | haltdef }
+  if ($isalias(kte::Raw.317)) {
+    set -u1 %::nick $2
+    set -u1 %::idletime $3
+    set -u1 %::signontime $asctime($4)
+    ._doraw $1-
+  }
+}
+raw 318:*:{
+  if ($halted) { return }
+  if ($hget(Kte_Data, ..NoNick)) { hdel Kte_Data ..NoNick | halt }
+  if ($hget(Kte_Whois)) { showwhois Whois | hfree Kte_Whois | haltdef }
+  if ($isalias(kte::Raw.318)) { set -nu1 %::nick $2 | ._doraw $1- }
+}
+raw 369:*:{
+  if ($halted) { return }
+  if (* iswm $hget(Kte_Data, ..NoNick)) { hdel Kte_Data ..NoNick | halt }
+  if ($hget(Kte_Whois)) { showwhois Whowas | hfree Kte_Whois | haltdef }
+  if ($isalias(kte::Raw.369)) { set -nu1 %::nick $2 | ._doraw $1- }
+}
+
+raw *:*:{
+  if (6* iswm $numeric) || ($halted) { return }
+  if ($numeric = 303) && (!$2-) { Kte_error - $+ $_active The specified nicks are not online | haltdef }
+  set -u1 %::nick $2 | set -u1 %::chan $2 | set -u1 %::value $2
+  _doraw $1-
+}
+; /_doraw str <params>
+alias -l _doraw {
+  var %cl = info2, %f, %n = $right(00 $+ $numeric, 3)
+  if ($istok(401 404, $numeric, 32)) { hadd Kte_Data ..NoNick $2 }
+  elseif (* iswm $hget(Kte_Data, ..NoNick)) { hdel Kte_Data ..NoNick }
+  if ($halted) && ($show) { goto end }
+  if ($istok(331 332 333, $numeric, 32)) { %cl = topic }
+  elseif ($numeric = 372) { %cl = normal }
+  set -u1 %::numeric $numeric
+  set -u1 %::fromserver $nick
+  kte_set std target
+  if ($istok(324 328 329 331 332 333 352 353 366 367 368 404 482, $numeric, 32)) {
+    var %ch = $2 | if ($numeric = 353) { %ch = $3 }
+    set -u1 %::chan %ch
+    if (%ch ischan) { %f = -ti2 %ch }
+    set -u1 %::value $3
+    if (!$var(%::text)) { set -nu1 %::text $3- }
+  }
+  if (!$isalias(kte::Raw. $+ %n)) {
+    if (!%f) { %f = -ti2 $+ $iif(($_isactive) && ($status != connecting) && (@* !iswm $active), a, s) }
+    set -u1 %:echo echo $color(%cl) %f
+    if (!$var(%::text)) { set -nu1 %::text $2- }
+    kte_set parentext
+    kte::Raw.Other !
+  }
+  else {
+    if ($istok(403 405 437 442 467 468 471 473 474 475 477 478, $numeric, 32)) {
+      set -u1 %::chan $2
+      if ($numeric = 478) { set -u1 %::value $3 | set -nu1 %::text $4- }
+      elseif (!$var(%::text)) { set -nu1 %::text $3- }
+    }
+    elseif ($istok(432 433 436 438, $numeric, 32)) { set -nu1 %::text $3- }
+    elseif ($numeric = 301) {
+      if (!$hget(Kte_Events, Active.Away)) { %f = -ti2s }
+      elseif ($query($2)) { %f = -ti2 $2 }
+    }
+    if (!%f) { %f = -ti2 $+ $iif(($_isactive) && ($status != connecting) && (@* !iswm $active), a, s) }
+    if (!$var(%::text)) {
+      if ($var(%::nick)) || ($var(%::chan)) || ($var(%::value)) { set -nu1 %::text $3- }
+      else { set -nu1 %::text $2- }
+    }
+    set -u1 %:echo echo $color(%cl) %f
+    kte_set parentext
+    $+(kte::Raw., %n)
+  }
+  haltdef
+  :end
+  kte_unset std nick address chan modes wserver target parentext fromserver value numeric away isoper cmode realname
+}
+
+alias -l showwhois {
+  var %h = Kte_Whois
+  if (!$hget(%h, IsOper)) { hadd %h IsOper is not }
+  if (!$hget(%h, IsRegd)) { hadd %h IsRegd is not }
+  kte_set std
+  set -u1 %::nick $hget(%h, Nick) | set -u1 %::address $hget(%h, Address) | set -nu1 %::realname $hget(%h, RealName)
+  set -nu1 %::chan $hget(%h, Chan) | set -u1 %::wserver $hget(%h, WServer) | set -nu1 %::serverinfo $hget(%h, ServerInfo)
+  set -nu1 %::text $hget(%h, Text) | set -u1 %::isregd $hget(%h, IsRegd) | set -u1 %::isoper $hget(%h, IsOper)
+  set -nu1 %::operline $hget(%h, OperLine) | set -u1 %::idletime $hget(%h, IdleTime)
+  set -u1 %::signontime $asctime($hget(%h, SignonTime)) | set -nu1 %::away $hget(%h, Away)
+  set -u1 %:echo echo $color(whois) -ti2 $+ $iif(($_isactive) && (@* !iswm $active) && ($hget(Kte_Events, Active.Whois)), a, s)
+  if ($1 == Whois) { kte::Whois ! }
+  else { kte::Whowas ! }
+  hdel -w Kte_Whois *
+  kte_unset std nick address realname chan wserver serverinfo text isregd isoper operline idletime signontime away
+}
+
+

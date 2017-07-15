@@ -1,0 +1,153 @@
+<html>
+<head>
+<title>MTS loader v1.70</title>
+<STYLE>
+  A { TEXT-DECORATION: none }
+  A:hover { text-decoration: underline }
+</STYLE>
+</head>
+
+<body bgcolor="#000000" text="#CCCCCC" link="white" vlink="white" alink="white" leftmargin="1" topmargin="1">
+<font size="2" face="Verdana">
+
+<p><strong>Contents:</strong></p>
+
+<ul>
+  <li><a href="#1">Intro</a></li>
+  <li><a href="#2">Commands</a></li>
+  <li><a href="#3">Main dialog</a></li>
+  <li><a href="#4">Info dialog</a></li>
+  <li><a href="#5">Options dialog</a></li>
+</ul>
+
+<hr>
+
+<p><strong>Intro<a name="1"></a></strong></p>
+<p>
+  MTS loader v1.70 is a mIRC addon written to make you available to load MTS themes on your
+  mIRC script. Currently supports MTS version 1.3 and needs mIRC 6.16 to work at full
+  capacity. It also needs MDX and popups.dll to be used with it's dialogs (don't bother
+  getting them, this addon already brings them).
+</p>
+
+<hr>
+
+<p><strong>Commands<a name="2"></a></strong></p>
+<p><u>/mts</u></p>
+<p>
+  Displays the main MTS loader dialog box
+</p>
+
+<p><u>/mtsinfo</u> &lt;theme list index&gt;</p>
+<p>
+  Display information on the Nth theme added to it's list
+</p>
+
+<p><u>/mtsopt</u></p>
+<p>
+  Displays the dialog box dedicated to this addon options
+</p>
+
+<p><u>/mtspre</u> &lt;large | small&gt; &lt;mts | scheme1 | scheme2 | ... | schemeN&gt; &lt;path to theme&gt;</p>
+<p>
+  Generates a preview of the given theme, featuring the Nth or default scheme. Use &quot;large&quot; 
+  to generate a large preview, and &quot;small&quot; to generate a small one. Note that you must have
+  the main dialog box active in order to have a small preview, otherwise, it will be generated a large
+  one instead
+</p>
+
+<p><u>/mtsload</u> &lt;mts | scheme1 | scheme2 | ... | schemeN&gt; &lt;path to theme&gt;</p>
+<p>
+  Loads a given theme into your mIRC, featuring the default or Nth scheme
+</p>
+
+<p><u>/mtsunload</u></p>
+<p>
+  Unloads any theme that may be loaded
+</p>
+
+<hr>
+
+<p><strong>Main dialog<a name="3"></a></strong></p>
+
+<p>
+  This is where you can load/unload your themes, and generate previews, without having to type the respective
+  commands. You also have a list where you can add/remove your themes and a combo box to selected their schemes
+  to be used on previews and loads.
+</p>
+
+<p><strong><em>Buttons</em></strong></p>
+
+<p>
+  Load/unload: loads/unloads a theme into/from mIRC
+</p>
+
+<p>
+  preview: generates a preview of the selected theme on the list, featuring the selected scheme
+</p>
+
+<p>
+  larger: same as above, but will generate a bigger preview apart from the main dialog
+</p>
+
+<p>
+  Accurate preview: if this checkbox is marked, the theme loader will generate a preview using all control codes
+  used by the theme rather then stripping the preview from color control codes. This type of preview takes longer
+  time to be generated, and you might notice your current color settings shifting to the ones declared in the theme,
+  for a very short period of time. Eventually, your colored text might not go back to normal, but all the future
+  messages that you will receive will have the right colors
+</p>
+
+<p><em><strong>Menus</strong></em></p>
+
+<p>&gt; File</p>
+<p>&gt;&gt; Add - adds a theme to the list</p>
+<p>&gt;&gt; Edit - opens a selected theme in notepad so it can be edited by you</p>
+<p>&gt;&gt; Remove - removes a theme from the list</p>
+<p>&gt;&gt; Add folder - adds all the themes of a given folder to the list</p>
+<p>&gt;&gt; Clear list - removes all themes from the list</p>
+<p>&gt;&gt; Info - Displays the info dialog box featuring information about the selected theme in the list</p>
+<p>&gt;&gt; Close - Closes the dialog</p>
+
+<p>&gt; Options</p>
+<p>&gt;&gt; Set path to</p>
+<p>
+  &gt;&gt;&gt; MDX - You can change the path to MDX files thru this menu item. It's usefull
+  if you already have the requiered MDX files in your script's folder, so you don't need to
+  use the same files in a diferent folder just to fullfill the addon dialog's requirements
+</p>
+<p>&gt;&gt;&gt; Popups - Same as above, but will set the path to popups.dll</p>
+<p>&gt;&gt; Destroy preview - destroys any small preview generated</p>
+<p>&gt;&gt; Preview on click - if marked, every time you click a theme on the list, or select 
+  a diferent scheme from the combo box, a new small preview is automatically generated</p>
+<p>&gt;&gt; Clear windows on load - if marked, everytime a theme is loaded, all mIRC's 
+  windows will have their text erased from them</p>
+<p>&gt;&gt; Minimize windows on load - if marked, everytime a theme is loaded, all mIRC's 
+  windows will be minimized, and restored after finished loading a theme</p>
+<p>&gt;&gt; Advanced - Displays the options dialog box dedicated to this addon</p>
+<p>&gt; Help</p>
+<p>&gt;&gt; Readme - displays readme.txt</p>
+<p>&gt;&gt; Contents - displays this HTML file</p>
+<p>&gt;&gt; About - displays credits about this addon</p>
+
+<hr>
+
+<p>
+  <strong>Info dialog<a name="4"></a></strong> - This dialog wil display the information contained on 
+  a given theme regarding it's name, version, author, MTS version, URL, Email, and description
+</p>
+
+<hr>
+
+<p>
+  <strong>Options dialog<a name="5"></a></strong> - Here you can choose what this addon should load
+  from a theme, like pictures, fonts, colors, etc, choose what should be hide, like channel info when
+  joining a channel, welcome messages, etc, and finally, you are also available to set custom colors 
+  to diferent status of nicknames on channels, like for example, displaying channel operators in red,
+  voiced users in green, yourself in blue, and so on. If you don't set any colors, the theme will use
+  it own's (if available)
+</p>
+
+</font>
+</body>
+</html>
