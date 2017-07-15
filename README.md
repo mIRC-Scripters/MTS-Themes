@@ -13,9 +13,9 @@ Most popular was the MTS 1.1 standard.
 
 This theme engine can be had here. It still works under mirc 7.x 
 
-Please read: [http://forums.mirc.com/ubbthreads.php/topics/259582/MTS_-_mIRC_Theme_Standard_(new#Post259582](http://forums.mirc.com/ubbthreads.php/topics/259582/MTS_-_mIRC_Theme_Standard_(new#Post259582)
+Please read: http://forums.mirc.com/ubbthreads.php/topics/259582/MTS_-_mIRC_Theme_Standard_(new#Post259582
 
-[!Capture](https://github.com/acvxqs/MTS-Themes/blob/master/export-ignore/masamunecyrus.bmp)
+[!Capture](https://github.com/acvxqs/MTS-Themes/blob/master/export-ignore/masamunecyrus.png)
 
 # Peace and Protection 4.22
 
