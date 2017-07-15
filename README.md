@@ -16,12 +16,19 @@ This theme engine can be had here. It still works under mirc 7.x
 ## Notes:
 
 * Please read: http://forums.mirc.com/ubbthreads.php/topics/259582/MTS_-_mIRC_Theme_Standard_(new#Post259582
+* Supports up to MTS 1.1
+* Not all themes load well in KTE.
 * The below fix was made to KTE 1.5 in this repo:
 ![Capture](https://github.com/acvxqs/MTS-Themes/blob/master/export-ignore/masamunecyrus.png)
 
-# Peace and Protection 4.22
+# Peace and Protection 4.22 - [complete mIRC script]
 
-Pai created P&P. Within it she created a MTS 1.1 compatible theme engine. It was coded in pure mSL (hence it's still working)
+Pai created P&P and released it back in Feb 2002. Within it she created a MTS 1.1 compatible theme engine.
+It was coded in pure mSL (hence it's still working)
 
 P&P can be had on GitHub at: [https://github.com/solbu/Peace-and-Protection](https://github.com/solbu/Peace-and-Protection)
 
+## Notes:
+
+* Not all themes here load well or are working perfectly under P&P. 
+* Some themes here have been modded to work in P&P, see: [https://github.com/solbu/Peace-and-Protection/tree/themes](https://github.com/solbu/Peace-and-Protection/tree/themes)
