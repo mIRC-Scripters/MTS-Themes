@@ -8,6 +8,7 @@ Most popular was the MTS 1.1 standard.
 
 * Using Notepad++, theme files' codepages were set and then converted to UTF8.
 * Some theme files are still ANSI encoded, these theme files use lime.fon, bright.fon, Terminal etc.
+* Some theme files are untouched. Can be found in the MTS11\_Unsorted folder.
 
 # KTE (Kamek's Theme Egine)
 
