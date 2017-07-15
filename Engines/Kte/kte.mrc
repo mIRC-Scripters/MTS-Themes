@@ -529,7 +529,7 @@ alias -l kte_pcomp {
   if ($istok(%v, % $+ ::pre, 32)) && (* iswm %kte__pre) {
     while ($findtok(%v, % $+ ::pre, 1, 32)) { set -n %v $puttok(%v, %kte__pre, $ifmatch, 32) }
   }
-  while ($regsub(%v, /((\s|\A)[^$%\x28,\[\]][^\x20\x29,]*) \$\+ ([^$%\[\]]\S*(\s|\Z))/, $!1$3, %v) > 0) { }
+  while ($regsub(%v, /((\s|\A)[^$%\x28,\[\]][^\x20\x29,]*) \$\+ ([^$%\[\]]\S*(\s|\Z))/, \1\3, %v) > 0) { }
   return %v
 }
 
