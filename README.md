@@ -37,10 +37,10 @@ ircN can be had here: [http://www.ircn.org/download.html](http://www.ircn.org/do
 Pai created P&P and released it back in Feb 2002. Within it she created a MTS 1.1 compatible theme engine.
 It was coded in pure mSL (hence it's still working)
 
-P&P can be had on GitHub at: [https://github.com/solbu/Peace-and-Protection](https://github.com/solbu/Peace-and-Protection)
+P&P can be had on GitHub at: [https://github.com/solbu/Peace-and-Protection](https://github.com/Peace-and-Protection/Peace-and-Protection)
 
 ## Notes:
 
 * Supports up to MTS 1.1
 * Not all themes here load well and need a little adjustment. 
-* Some themes here have been modded to work in P&P, see: [https://github.com/solbu/Peace-and-Protection/tree/themes](https://github.com/solbu/Peace-and-Protection/tree/themes)
+* Some themes here have been modded to work in P&P, see: [https://github.com/Peace-and-Protection/Peace-and-Protection/tree/themes](https://github.com/Peace-and-Protection/Peace-and-Protection/tree/themes)
